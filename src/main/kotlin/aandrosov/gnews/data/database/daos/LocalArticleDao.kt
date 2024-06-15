@@ -1,18 +1,18 @@
 package aandrosov.gnews.data.database.daos
 
-import aandrosov.gnews.data.database.entity.LocalArticle
+import aandrosov.gnews.data.database.entity.ArticleEntity
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 
 @Dao
 interface LocalArticleDao {
-    @Query("SELECT * FROM local_article")
-    fun getAll(): List<LocalArticle>
+    @Query("SELECT * FROM article")
+    fun getAll(): List<ArticleEntity>
 
     @Insert
-    fun insert(localArticle: LocalArticle)
+    fun insert(articleEntity: ArticleEntity)
 
-    @Query("DELETE FROM local_article WHERE id = :id")
+    @Query("DELETE FROM article WHERE id = :id")
     fun deleteById(id: Int)
 }
