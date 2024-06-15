@@ -1,7 +1,8 @@
 package aandrosov.gnews.data.repositories
 
 import aandrosov.gnews.data.database.daos.LocalArticleDao
-import aandrosov.gnews.data.database.entity.LocalArticle
+import aandrosov.gnews.data.database.entity.ArticleEntity
+import aandrosov.gnews.data.models.Article
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -14,15 +15,18 @@ class FavoritesNewsRepositoryImpl(
         localArticleDao.getAll()
     }
 
-    override suspend fun addToFavorites(url: String, title: String, publishedAt: String, imageUrl: String) {
+    override suspend fun addToFavorites(article: Article) {
         return withContext(dispatcher) {
             localArticleDao.insert(
-                LocalArticle(
+                ArticleEntity(
                     id = 0,
-                    url = url,
-                    title = title,
-                    publishedAt = publishedAt,
-                    imageUrl = imageUrl
+                    url = article.url,
+                    title = article.title,
+                    content = article.content,
+                    description = article.description,
+                    publishedAt = article.publishedAt,
+                    imageUrl = article.imageUrl,
+                    source = article.source
                 )
             )
         }

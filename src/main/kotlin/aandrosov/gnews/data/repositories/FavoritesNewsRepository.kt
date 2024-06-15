@@ -1,9 +1,10 @@
 package aandrosov.gnews.data.repositories
 
-import aandrosov.gnews.data.database.entity.LocalArticle
+import aandrosov.gnews.data.database.entity.ArticleEntity
+import aandrosov.gnews.data.models.Article
 
 interface FavoritesNewsRepository {
-    suspend fun fetchFavorites(): List<LocalArticle>
-    suspend fun addToFavorites(url: String, title: String, publishedAt: String, imageUrl: String)
+    suspend fun fetchFavorites(): List<ArticleEntity>
+    suspend fun addToFavorites(article: Article)
     suspend fun removeFromFavorites(id: Int)
 }
