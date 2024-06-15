@@ -1,13 +1,13 @@
 package aandrosov.gnews.data.database
 
 import aandrosov.gnews.data.database.daos.LocalArticleDao
-import aandrosov.gnews.data.database.entity.LocalArticle
+import aandrosov.gnews.data.database.entity.ArticleEntity
 import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 
-@Database(entities = [LocalArticle::class], version = 1)
+@Database(entities = [ArticleEntity::class], version = 1)
 abstract class GNewsDatabase : RoomDatabase() {
     companion object {
         private lateinit var instance: GNewsDatabase
