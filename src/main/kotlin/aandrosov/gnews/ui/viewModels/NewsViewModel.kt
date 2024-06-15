@@ -1,6 +1,7 @@
 package aandrosov.gnews.ui.viewModels
 
-import aandrosov.gnews.data.database.entity.LocalArticle
+import aandrosov.gnews.data.database.entity.ArticleEntity
+import aandrosov.gnews.data.database.entity.asExternalModel
 import aandrosov.gnews.data.models.Article
 import aandrosov.gnews.data.models.Query
 import aandrosov.gnews.data.repositories.FavoritesNewsRepository
@@ -25,12 +26,10 @@ class NewsViewModel(
     private var fetchTrendsJob: Job? = null
     private var fetchFavoritesJob: Job? = null
 
-    private suspend fun articleUiStateFrom(article: Article): ArticleUiState {
-        suspend fun getFavorite(): LocalArticle? {
+    private suspend fun convertToArticleUiState(article: Article): ArticleUiState {
+        suspend fun getFavorite(): ArticleEntity? {
             return favoritesRepository.fetchFavorites().firstOrNull {
-                article.title == it.title
-                        && article.imageUrl == it.imageUrl
-                        && article.publishedAt == it.publishedAt
+                article == it.asExternalModel()
             }
         }
 
@@ -42,42 +41,10 @@ class NewsViewModel(
             isFavorite = getFavorite() != null,
             onFavorite = {
                 viewModelScope.launch {
-                    val articleId = getFavorite()?.id
+                    val favorite = getFavorite()
 
-                    articleId ?: return@launch favoritesRepository.addToFavorites(
-                        url = article.url,
-                        title = article.title,
-                        publishedAt = article.publishedAt,
-                        imageUrl = article.imageUrl
-                    )
-
-                    favoritesRepository.removeFromFavorites(articleId)
-                }
-            }
-        )
-    }
-
-    private fun articleUiStateFrom(localArticle: LocalArticle): ArticleUiState {
-        return ArticleUiState(
-            url = localArticle.url,
-            title = localArticle.title,
-            imageUrl = localArticle.imageUrl,
-            publishedAt = localArticle.publishedAt,
-            isFavorite = true,
-            onFavorite = {
-                viewModelScope.launch {
-                    val articleId = favoritesRepository.fetchFavorites().firstOrNull {
-                        localArticle == it
-                    }?.id
-
-                    articleId ?: return@launch favoritesRepository.addToFavorites(
-                        url = localArticle.url,
-                        title = localArticle.title,
-                        publishedAt = localArticle.publishedAt,
-                        imageUrl = localArticle.imageUrl
-                    )
-
-                    favoritesRepository.removeFromFavorites(articleId)
+                    favorite ?: return@launch favoritesRepository.addToFavorites(article)
+                    favoritesRepository.removeFromFavorites(favorite.id)
                 }
             }
         )
@@ -92,7 +59,7 @@ class NewsViewModel(
                 language = language
             )
             val articles = try {
-                newsRepository.search(q).map { articleUiStateFrom(it) }
+                newsRepository.search(q).map { convertToArticleUiState(it) }
             } catch (exception: Exception) {
                 mutableUiState.value = NewsUiState(message = exception.toString())
                 return@launch
@@ -110,7 +77,7 @@ class NewsViewModel(
                 language = language
             )
             val articles = try {
-                newsRepository.trends(q).map { articleUiStateFrom(it) }
+                newsRepository.trends(q).map { convertToArticleUiState(it) }
             } catch (exception: Exception) {
                 mutableUiState.value = NewsUiState(message = exception.toString())
                 return@launch
@@ -124,7 +91,7 @@ class NewsViewModel(
         fetchFavoritesJob?.cancel()
         fetchFavoritesJob = viewModelScope.launch {
             val articles = try {
-                favoritesRepository.fetchFavorites().map { articleUiStateFrom(it) }
+                favoritesRepository.fetchFavorites().map { convertToArticleUiState(it.asExternalModel()) }
             } catch (exception: Exception) {
                 mutableUiState.value = NewsUiState(message = exception.toString())
                 return@launch
